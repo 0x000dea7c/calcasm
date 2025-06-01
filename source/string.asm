@@ -4,6 +4,8 @@
 %include "syscalls.asm"
 %include "constants.asm"
 
+minus_sign db '-', 0
+
 string_length:
         push rbx
         mov rbx, rax
@@ -44,6 +46,17 @@ integer_print:
         push rdi
         push rsi
         xor rcx, rcx            ; counter of how many bytes we need to print in the end
+        cmp rax, 0              ; first of all, check if it's a negative number
+        jl .handle_minus
+        jge .divide_loop
+
+.handle_minus:
+        push rax
+        mov rax, minus_sign
+        call string_print
+        pop rax
+        neg rax                 ; make the number positive now
+        jmp .divide_loop
 
 .divide_loop:
         inc rcx                 ; count each byte
