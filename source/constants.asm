@@ -1,6 +1,6 @@
 %ifndef CONSTANTS_ASM
-
 %define CONSTANTS_ASM
+
 %define stdin 0
 %define stdout 1
 %define stderr 2

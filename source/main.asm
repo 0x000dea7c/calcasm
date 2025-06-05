@@ -7,7 +7,7 @@
 %define NULL_BYTE 0x00
 %define WHITESPACE 0x20
 %define SYMBOL_ADD 0x2B
-%define SYMBOL_SUBTRACT 0x2D
+%define SYMBOL_MINUS 0x2D
 %define SYMBOL_MULTIPLY 0x2A
 %define SYMBOL_DIVIDE 0x2F
 %define NEW_LINE 0x0A
@@ -17,6 +17,8 @@ SECTION .data
         prompt_character_length equ $-prompt_character
         input_buffer times 256 db 0
         input_size equ 256
+SECTION .bss
+        is_negative resb 1      ; flag to know if the current number is negative or not
 SECTION .text
 global _start
 _start:
@@ -45,14 +47,13 @@ _start:
         je .finished
         cmp bl, NEW_LINE
         je .finished
-
         cmp bl, WHITESPACE      ; if there is a space, go to the next digit
         je .push_number         ; push current number onto the stack
 
         cmp bl, SYMBOL_ADD
         je .push_add_operator
-        cmp bl, SYMBOL_SUBTRACT
-        je .push_subtract_operator
+        cmp bl, SYMBOL_MINUS ; we encountered a minus sign, need to be careful here
+        je .handle_minus_sign
         cmp bl, SYMBOL_MULTIPLY
         je .push_multiply_operator
         cmp bl, SYMBOL_DIVIDE
@@ -72,6 +73,29 @@ _start:
         inc rcx                 ; increment the counter
         jmp .read_loop
 
+.handle_minus_sign:
+        cmp rcx, 0              ; if it's at the start, then we know it's a number, so we just set the flag
+        je .set_negative
+        mov bl, [rsi + rcx - 2] ; get two bytes before, skipping the whitespace assuming it's well formed ofc
+        cmp bl, SYMBOL_ADD
+        je .push_minus_operator
+        cmp bl, SYMBOL_MINUS
+        je .push_minus_operator
+        cmp bl, SYMBOL_MULTIPLY
+        je .push_minus_operator
+        cmp bl, SYMBOL_DIVIDE
+        je .push_minus_operator
+        ; TODO: I don't think this is a good idea
+        mov bl, [rsi + rcx + 1] ; let's fetch the next byte and see if it's the end
+        cmp bl, NEW_LINE
+        je .push_minus_operator
+        jmp .set_negative       ; this already increments the counter and jumps back to read loop
+
+.set_negative:
+        mov byte [is_negative], 1
+        inc rcx
+        jmp .read_loop
+
 .push_add_operator:
         pop rax
         pop rbx
@@ -80,10 +104,10 @@ _start:
         inc rcx
         jmp .read_loop
 
-.push_subtract_operator:
-        pop rax
+.push_minus_operator:
         pop rbx
-        sub rax, rbx
+        pop rax
+        sub rax, rbx            ; the second operand from the first one, aka, rax - rbx
         push rax
         inc rcx
         jmp .read_loop
@@ -104,7 +128,17 @@ _start:
         inc rcx
         jmp .read_loop
 
-.push_number:
+.push_number:                   ; we can clean up this routine and push positive to avoid writing extra code I think
+        cmp byte [is_negative], 1
+        jne .push_positive
+        neg rax
+        mov byte [is_negative], 0
+        push rax
+        xor rax, rax
+        inc rcx
+        jmp .read_loop
+
+.push_positive:
         push rax
         xor rax, rax
         inc rcx
