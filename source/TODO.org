@@ -1,0 +1,19 @@
+* FIX
+
+Input: 10 -4 - 5 /
+Expected Output: 2 (2.8)
+
+10
+-4
+10 - (-4) = 10 + 4 = 14
+
+14
+5
+/
+14 / 5 = 2 (truncated)
+
+Input: -8 -2 * 6 3 - +
+Expected Output: 19
+
+Input: 0 -5 * 4 +
+Expected Output: 4

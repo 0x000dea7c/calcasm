@@ -1,6 +1,8 @@
-break main.asm:77
-break main.asm:100
-break main.asm:108
-break main.asm:116
-break main.asm:124
-break main.asm:132
+break _start.handle_minus_sign
+break _start.push_add_operator
+break _start.push_minus_operator
+break _start.push_multiply_operator
+break _start.push_divide_operator
+break _start.push_number
+watch $rax
+watch $rbx

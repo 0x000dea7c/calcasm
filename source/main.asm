@@ -74,22 +74,12 @@ _start:
         jmp .read_loop
 
 .handle_minus_sign:
-        cmp rcx, 0              ; if it's at the start, then we know it's a number, so we just set the flag
-        je .set_negative
-        mov bl, [rsi + rcx - 2] ; get two bytes before, skipping the whitespace assuming it's well formed ofc
-        cmp bl, SYMBOL_ADD
-        je .push_minus_operator
-        cmp bl, SYMBOL_MINUS
-        je .push_minus_operator
-        cmp bl, SYMBOL_MULTIPLY
-        je .push_minus_operator
-        cmp bl, SYMBOL_DIVIDE
-        je .push_minus_operator
-        ; TODO: I don't think this is a good idea
-        mov bl, [rsi + rcx + 1] ; let's fetch the next byte and see if it's the end
-        cmp bl, NEW_LINE
-        je .push_minus_operator
-        jmp .set_negative       ; this already increments the counter and jumps back to read loop
+        mov bl, [rsi + rcx + 1] ; let's fetch the next byte: if it's a digit, then call set negative, otherwise it's an op
+        cmp bl, ASCII_0
+        jl .push_minus_operator
+        cmp bl, ASCII_9
+        jg .push_minus_operator
+        jmp .set_negative
 
 .set_negative:
         mov byte [is_negative], 1

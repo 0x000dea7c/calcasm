@@ -1,5 +1,5 @@
 all:
-	nasm -f elf64 source/main.asm -g -i source
+	nasm -f elf64 -g source/main.asm -i source
 	ld source/main.o -o main
 
 run:
