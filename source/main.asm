@@ -19,6 +19,7 @@ SECTION .data
         input_size equ 256
 SECTION .bss
         is_negative resb 1      ; flag to know if the current number is negative or not
+        previous_token_was_op resb 1
 SECTION .text
 global _start
 _start:
@@ -38,6 +39,7 @@ _start:
         xor rsi, rsi          ; base address of input buffer
         xor rcx, rcx          ; counter
         mov rsi, input_buffer ; position at the beginning of the buffer
+        mov byte [previous_token_was_op], 0
 
 .read_loop:
         xor rbx, rbx            ; we store the current digit here
@@ -93,6 +95,7 @@ _start:
         push rax
         xor rax, rax
         inc rcx
+        mov byte [previous_token_was_op], 1
         jmp .read_loop
 
 .push_minus_operator:
@@ -102,6 +105,7 @@ _start:
         push rax
         xor rax, rax
         inc rcx
+        mov byte [previous_token_was_op], 1
         jmp .read_loop
 
 .push_multiply_operator:
@@ -111,6 +115,7 @@ _start:
         push rax
         xor rax, rax
         inc rcx
+        mov byte [previous_token_was_op], 1
         jmp .read_loop
 
 .push_divide_operator:          ; TODO: check division by zero
@@ -120,10 +125,11 @@ _start:
         push rax
         xor rax, rax
         inc rcx
+        mov byte [previous_token_was_op], 1
         jmp .read_loop
 
-.push_number:                   ; we can clean up this routine and push positive to avoid writing extra code I think
-        cmp rax, 0
+.push_number:
+        cmp byte [previous_token_was_op], 1
         je .push_number_skip
         cmp byte [is_negative], 1
         jne .push_positive
@@ -132,16 +138,19 @@ _start:
         push rax
         xor rax, rax
         inc rcx
+        mov byte [previous_token_was_op], 0
         jmp .read_loop
 
 .push_number_skip:
         inc rcx
+        mov byte [previous_token_was_op], 0
         jmp .read_loop
 
 .push_positive:
         push rax
         xor rax, rax
         inc rcx
+        mov byte [previous_token_was_op], 0
         jmp .read_loop
 
 .finished:
