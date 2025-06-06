@@ -128,6 +128,7 @@ _start:
         pop rax
         div rbx
         push rax
+        xor rax, rax
         inc rcx
         jmp .read_loop
 
