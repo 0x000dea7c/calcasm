@@ -1,0 +1,5 @@
+* Fixing
+
+** -5 3 4 + * 2 - 1
+
+This expression outputs 47 and it should be -37. I think it's pushing twice onto the stack.

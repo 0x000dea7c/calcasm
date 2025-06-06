@@ -101,6 +101,7 @@ _start:
         pop rbx
         add rax, rbx
         push rax
+        xor rax, rax
         inc rcx
         jmp .read_loop
 
@@ -109,6 +110,7 @@ _start:
         pop rax
         sub rax, rbx            ; the second operand from the first one, aka, rax - rbx
         push rax
+        xor rax, rax
         inc rcx
         jmp .read_loop
 
@@ -117,6 +119,7 @@ _start:
         pop rbx
         mul rbx
         push rax
+        xor rax, rax
         inc rcx
         jmp .read_loop
 
@@ -129,12 +132,18 @@ _start:
         jmp .read_loop
 
 .push_number:                   ; we can clean up this routine and push positive to avoid writing extra code I think
+        cmp rax, 0
+        je .push_number_skip
         cmp byte [is_negative], 1
         jne .push_positive
         neg rax
         mov byte [is_negative], 0
         push rax
         xor rax, rax
+        inc rcx
+        jmp .read_loop
+
+.push_number_skip:
         inc rcx
         jmp .read_loop
 
